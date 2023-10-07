@@ -4,9 +4,6 @@ import pandas as pd
 import spacy
 from sentence_encoder import SentenceEncoder
 
-def process_data():
-    ...
-
 def save_data(filepath, name: str, data: pd.DataFrame):
     numRows = data.shape[0]
     save_file = filepath + f"twitter.{numRows}.{name}.json"
