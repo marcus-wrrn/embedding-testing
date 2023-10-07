@@ -29,9 +29,6 @@ class SentenceEncoder:
         sentence_embeddings = mean_pooling(token_embeddings, tokenized_sents['attention_mask'])
         return F.normalize(sentence_embeddings, p=2, dim=1)
 
-def encode_text(sentence_encoder, texts):
-    ...
-
 def main():
    # Sentences we want sentence embeddings for
     sentences = ['This is an example sentence', 'Each sentence is converted', 'Hello World']
