@@ -2,7 +2,9 @@ import numpy as np
 from sentence_transformers import SentenceTransformer, util
 import pandas as pd
 import spacy
+from dataloader import UnprocessedTwitterDataset
 from sentence_encoder import SentenceEncoder
+import torch
 
 def save_data(filepath, name: str, data: pd.DataFrame):
     numRows = data.shape[0]
@@ -32,11 +34,11 @@ def preprocess_and_save(model: SentenceEncoder, save_file_path: str, filename: s
 def main():
     #nlp = spacy.load("en_core_web_sm")
     #model = SentenceTransformer("all-mpnet-base-v2")
-    
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     data_path = "./Data/twitter_sentiment/training.1600000.processed.noemoticon.csv"
-    train_num = 5000
-    test_num = 1000
-    valid_num = 500
+    train_num = 100000
+    test_num = 10000
+    valid_num = 1000
 
     # Retrieve data
     train_data = load_dataset(data_path, train_num, 0)
@@ -45,6 +47,7 @@ def main():
 
     # Initialize Sentence encoder
     encoder = SentenceEncoder()
+    
     save_file_path = "./Data/twitter_sentiment/"
     preprocess_and_save(encoder, save_file_path, "train", train_data)
     preprocess_and_save(encoder, save_file_path, "test", test_data)

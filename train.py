@@ -10,6 +10,11 @@ from model import MLP
 from dataloader import load_twitter_dataset
 import pandas as pd
 
+class HyperParameters:
+    def __init__(self):
+        pass
+
+
 def train(n_epochs, optimizer, model, loss_fn, train_loader, scheduler, device, args):
     print('Training...')
     model.train()
@@ -50,36 +55,40 @@ def train(n_epochs, optimizer, model, loss_fn, train_loader, scheduler, device, 
 def main():
     # argument parser so train.py can be called using command line
     parser = argparse.ArgumentParser(description='MLP Autoencoder Training')
-    parser.add_argument('-z', '--bottleneck', type=int, default=8, help='Bottleneck size')
-    parser.add_argument('-e', '--epochs', type=int, default=50, help='Number of training epochs')
-    parser.add_argument('-b', '--batch-size', type=int, default=128, help='Batch size')
-    parser.add_argument('-s', '--save-model', type=str, default='MLP.pth', help='Path to save the model')
-    parser.add_argument('-p', '--save-plot', type=str, default='loss.png', help='Path to save the loss plot')
+    parser.add_argument('-f', '--lossfile', type=str, default="loss.png", help="FileName of loss file")
     args = parser.parse_args()
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-    batch_size = 200
+    print(f"Device: {device}")
+    batch_size = 500
     shuffle = True
     num_workers = 4
 
-    train_data = load_twitter_dataset("./Data/twitter_sentiment/twitter.5000.train.json")
-    test_data = load_twitter_dataset("./Data/twitter_sentiment/twitter.1000.test.json")
-    valid_data = load_twitter_dataset("./Data/twitter_sentiment/twitter.500.valid.json")
+    train_data = load_twitter_dataset("./Data/twitter_sentiment/twitter.100000.train.json")
+    #test_data = load_twitter_dataset("./Data/twitter_sentiment/twitter.10000.test.json")
+    valid_data = load_twitter_dataset("./Data/twitter_sentiment/twitter.1000.valid.json")
+
+    print(f"Train Distribution: {train_data.get_target_distribution()}")
+    print(f"Validation Distribution: {valid_data.get_target_distribution()}")
 
     train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
+    valid_dataloader = DataLoader(valid_data, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
 
-    model_layers = [768, 768 // 2, 100, 768 // 2, 768, 2]
+    
+
+    model_layers = [768, 768 * 2, 768, 400, 768, 2]
     model = MLP(layers=model_layers)
     model.to(device)
 
     loss_fn = nn.MSELoss()
 
-    optimizer = torch.optim.AdamW(model.parameters(), lr=0.001, weight_decay=1e-4)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=0.00001)
     scheduler = StepLR(optimizer, step_size=10, gamma=0.9)
 
     torchsummary.summary(model, model.input_shape)
     losses_train = []
+    losses_valid = []
+
     n_epochs = 100
     for epoch in range(1, n_epochs + 1):
         print(f"Epoch: {epoch}")
@@ -89,8 +98,6 @@ def main():
             batch_targets = batch_targets.to(device)
             optimizer.zero_grad()
             outputs = model(batch_data)
-            #print("Batch Targets: ", batch_targets)
-            #print("Outputs: ", outputs)
             loss = loss_fn(batch_targets, outputs)
             loss.backward()
             optimizer.step()
@@ -98,17 +105,36 @@ def main():
         scheduler.step()
         losses_train.append(loss_train / len(train_dataloader))
 
-        print(f"{datetime.datetime.now()} Epoch: {epoch}, Loss: {loss_train / len(train_dataloader)}")
+        loss_valid = 0.0
+        model.eval()
+        with torch.no_grad():
+            for batch_data, batch_targets in valid_dataloader:
+                batch_data = batch_data.to(device)
+                batch_targets = batch_targets.to(device)
+                outputs = model(batch_data)
+                loss = loss_fn(batch_targets, outputs)
+                loss_valid += loss.item()
+            losses_valid.append(loss_valid / len(valid_dataloader))
+        
+        print(f"{datetime.datetime.now()} Epoch: {epoch}, Train Loss: {loss_train / len(train_dataloader)}, Valid Loss: {loss_valid / len(valid_dataloader)}")
+        if losses_valid[-1] < 0.145:
+            break
     
-    plt.figure(figsize=(10, 5))
+    save_path = "./Data/twitter_sentiment/train_results/model_weights.pth"
+    torch.save(model.state_dict(), save_path)
+
+    plt.figure()
     plt.plot(range(1, len(losses_train) + 1), losses_train, label='Training Loss')
+    plt.plot(range(1, len(losses_valid) + 1), losses_valid, label='Validation Loss')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.legend()
     plt.grid(True)
 
-    plt.savefig("./Data/twitter_sentiment/loss.png")
+    plt.savefig("./Data/twitter_sentiment/train_results/loss2.png")
     plt.close()
+
+
 
 
     # use CUDA if available
