@@ -8,8 +8,8 @@ class TwitterDataset(Dataset):
     def __init__(self, data):
         super().__init__()
         #self.text = data[' text']
-        self.data = data['encodings']
-        self.targets = data['target']
+        self.data = data['encodings'].reset_index(drop=True)
+        self.targets = data['target'].reset_index(drop=True)
 
     def get_target_distribution(self):
         labels = {}
@@ -24,6 +24,10 @@ class TwitterDataset(Dataset):
         return len(self.data)
     
     def __getitem__(self, index):
+        if (index == 0):
+            print("This works?")
+        if (len(self.data) == index):
+            index -= 1
         sample_data = self.data[index]
         sample_data = torch.tensor(sample_data)
         sample_data = sample_data.unsqueeze(0)
