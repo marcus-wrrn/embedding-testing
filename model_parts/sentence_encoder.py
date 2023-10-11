@@ -16,7 +16,7 @@ class SentenceEncoder:
     """
     def __init__(self, 
                  tokenizer_path="sentence-transformers/all-mpnet-base-v2", 
-                 model_path="sentence-transformers/all-mpnet-base-v2"
+                 model_path="sentence-transformers/all-mpnet-base-v2" 
                 ):
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
         self.model = AutoModel.from_pretrained(model_path)

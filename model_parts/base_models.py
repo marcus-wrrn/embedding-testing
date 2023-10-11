@@ -50,6 +50,16 @@ class MLP(nn.Module):
             X = torch.relu(self.layers[i](X))
         X = torch.sigmoid(self.layers[-1](X))
         return X
+    
+    def save_file(self, save_path: str):
+        checkpoint = {
+            "layers": self.layers,
+            "state_dict": self.state_dict()
+        }
+        torch.save(checkpoint, save_path)
 
-    
-    
+def load_mlp_model(load_path: str):
+    checkpoint = torch.load(load_path)
+    model = MLP(layers=checkpoint["layers"])  # rebuild model from saved layers
+    model.load_state_dict(checkpoint["state_dict"])  # load weights
+    return model
