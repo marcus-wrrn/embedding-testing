@@ -1,11 +1,9 @@
 import torch
 from torch import nn
 
-class AutoEncoder(nn.Module):
+class Auto4LayerEncoder(nn.Module):
     def __init__(self, N_input=768, layer_size=4, N_bottleneck=200, N_output=768):
-        super(AutoEncoder, self).__init__()
-        if layer_size - 1 % 2 == 0:
-            print("Error, layers must be")
+        super(Auto4LayerEncoder, self).__init__()
         N2 = N_input // 2
         self.fc1 = nn.Linear(N_input, N2)       # input = 1x784, output = 1x392
         self.fc2 = nn.Linear(N2, N_bottleneck)  # output = 1xN
@@ -31,6 +29,9 @@ class AutoEncoder(nn.Module):
 
 
 class MLP(nn.Module):
+    """
+    Multi Layer Perceptron with definable layers
+    """
     def __init__(self, layers=[768, 768//2, 200, 768 // 2, 768]):
         super(MLP, self).__init__()
         self.hidden_size = len(layers) - 2
@@ -40,10 +41,9 @@ class MLP(nn.Module):
         
         self.layers = nn.ModuleList()  # Use nn.ModuleList instead of a Python list
         for i in range(len(layers) - 1):
-            start = layers[i]
-            end = layers[i + 1]
-            self.layers.append(nn.Linear(start, end))
-        self.input_shape = (1, 768)
+            self.layers.append(nn.Linear(layers[i], layers[i + 1]))
+        self.input_shape = (1, layers[0])
+        self.output_shape = (1, layers[-1])
 
     def forward(self, X):
         for i in range(len(self.layers) - 1):
