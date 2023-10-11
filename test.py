@@ -1,5 +1,5 @@
 import torch
-from model import MLP
+from model_parts.base_models import MLP
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from dataloader import load_twitter_dataset

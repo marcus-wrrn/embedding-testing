@@ -6,7 +6,7 @@ import torchsummary
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import StepLR
 import matplotlib.pyplot as plt
-from model import MLP
+from model_parts.base_models import MLP
 from dataloader import load_twitter_dataset
 import pandas as pd
 

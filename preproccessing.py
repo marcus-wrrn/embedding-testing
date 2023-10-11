@@ -3,9 +3,10 @@ from sentence_transformers import SentenceTransformer, util
 import pandas as pd
 import spacy
 from dataloader import UnprocessedTwitterDataset
-from sentence_encoder import SentenceEncoder
+from model_parts.sentence_encoder import SentenceEncoder
 import torch
 import json
+from torch.utils.data import DataLoader
 
 def save_data(filepath, name: str, data: pd.DataFrame):
     numRows = data.shape[0]
@@ -41,6 +42,12 @@ def preprocess_and_save(model: SentenceEncoder, save_directory: str, df: pd.Data
    
     # save_data(save_file_path, filename, df)
 
+def preproccessing(dataset: UnprocessedTwitterDataset, model: SentenceEncoder, batch_size=1000):
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
+
+    for batch_data, batch_target in dataloader:
+        ...
+
 
 def main():
     #nlp = spacy.load("en_core_web_sm")
@@ -57,6 +64,7 @@ def main():
     test_data = load_dataset(data_path, test_num, train_num)
     valid_data = load_dataset(data_path, valid_num, train_num + test_num)
 
+    
     # Initialize Sentence encoder
     encoder = SentenceEncoder()
     

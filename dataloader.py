@@ -2,8 +2,6 @@ from torch.utils.data import Dataset
 import torch
 import pandas as pd
 
-
-
 class TwitterDataset(Dataset):
     def __init__(self, data):
         super().__init__()
@@ -52,9 +50,9 @@ class UnprocessedTwitterDataset(Dataset):
         return len(self.data)
     
     def __getitem__(self, index):
+        sample_data = self.all_data[index]
         sample_text = self.text[index]
-        sample_target = self.targets[index]
-        return sample_text, sample_target
+        return sample_data, sample_text
     
     def _load_dataset(self, filepath, rownum, start_point, posneg_split=800000):
         halfed_data = rownum // 2
