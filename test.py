@@ -16,37 +16,34 @@ def evaluate_confusion_matrix(confusion_matrix: torch.Tensor):
 
     # Computing Precision for the positive class
     precision = TP / (TP + FP)
-
+    print("Confusion Matrix:")
+    print(confusion_matrix)
     print(f"Accuracy: {accuracy * 100:.2f}%")
     print(f"Precision (for positive class): {precision * 100:.2f}%")
 
+@torch.no_grad()
+def test_model(model, dataloader):
+    confusion_matrix = torch.zeros(2, 2, dtype=torch.int)
+    for data, target in dataloader:
+        output = model(data)
+        output = (output > 0.5).int()
+        for t, p in zip(target.view(-1), output.view(-1)):
+            confusion_matrix[int(t.item()), p.item()] += 1
+    return confusion_matrix
 
-def evaluate_classification_model(modelpath: str, layers):
+def evaluate_classification_model(modelpath: str):
     # Loading the model
-    model = load_mlp_model("./Data/twitter_sentiment/train_results/modelMLP.pth")
+    model = load_mlp_model(modelpath)
     model.eval()
     # Loading the data
     test_data = load_twitter_dataset("./Data/twitter_sentiment/twitter.10000.test.json")
     test_dataloader = DataLoader(test_data, batch_size=1, shuffle=True)
-    confusion_matrix = torch.zeros(2, 2, dtype=torch.int)
-
-    with torch.no_grad():
-        for data, target in test_dataloader:
-            target = target
-            # Process outputs
-            output = model(data)
-            output = (output >= 0.5).int()
-            for t, p in zip(target.view(-1), output.view(-1)):
-                
-                confusion_matrix[int(t.item()), p.item()] += 1
-    print(confusion_matrix)
+    
+    confusion_matrix = test_model(model, test_dataloader)
     evaluate_confusion_matrix(confusion_matrix)
 
-            
-            
-
 def main():
-    evaluate_classification_model("./Data/twitter_sentiment/train_results/model_weights.pth", [768, 768 * 2, 768, 400, 768, 2])
+    evaluate_classification_model("./Data/twitter_sentiment/train_results/modelMLP.pth")
 
 if __name__ == "__main__":
     main()

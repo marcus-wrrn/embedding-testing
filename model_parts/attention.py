@@ -50,7 +50,6 @@ class AttentionHead(nn.Module):
         out = wei @ v # (B, T, T) @ (B, T, hs) -> (B, T, hs)
         return out
 
-
 class MultiHeadAttention(nn.Module):
     """ multiple heads of self-attention in parallel """
 

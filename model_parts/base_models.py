@@ -60,13 +60,14 @@ class MLP(nn.Module):
 
 
 
-def _extract_layers(modulelist: nn.ModuleList):
-    return [layer.in_features for layer in modulelist] + modulelist[-1].out_features
+def _extract_layers_from_modulelist(modulelist: nn.ModuleList):
+    layers_list = [layer.in_features for layer in modulelist] + [modulelist[-1].out_features]
+    return layers_list
 
 def load_mlp_model(load_path: str) -> MLP:
     try:
         checkpoint = torch.load(load_path)
-        layers = _extract_layers(checkpoint)
+        layers = _extract_layers_from_modulelist(checkpoint["layers"])
         model = MLP(layers=layers)  # rebuild model from saved layers
         model.load_state_dict(checkpoint["state_dict"])  # load weights
         return model
