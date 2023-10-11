@@ -1,5 +1,5 @@
 import torch
-from model_parts.base_models import MLP
+from model_parts.base_models import load_mlp_model
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from dataloader import load_twitter_dataset
@@ -23,8 +23,7 @@ def evaluate_confusion_matrix(confusion_matrix: torch.Tensor):
 
 def evaluate_classification_model(modelpath: str, layers):
     # Loading the model
-    model = MLP(layers=layers)
-    model.load_state_dict(torch.load(modelpath))
+    model = load_mlp_model("./Data/twitter_sentiment/train_results/modelMLP.pth")
     model.eval()
     # Loading the data
     test_data = load_twitter_dataset("./Data/twitter_sentiment/twitter.10000.test.json")

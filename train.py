@@ -52,6 +52,7 @@ def main():
     losses_valid = []
 
     n_epochs = 100
+    save_path = "./Data/twitter_sentiment/train_results/modelMLP.pth"
     for epoch in range(1, n_epochs + 1):
         print(f"Epoch: {epoch}")
         loss_train = 0.0
@@ -82,8 +83,8 @@ def main():
         if losses_valid[-1] < 0.145:
             break
     
-    save_path = "./Data/twitter_sentiment/train_results/model_weights.pth"
-    torch.save(model.state_dict(), save_path)
+    
+    model.save_file(save_path)
 
     plt.figure()
     plt.plot(range(1, len(losses_train) + 1), losses_train, label='Training Loss')

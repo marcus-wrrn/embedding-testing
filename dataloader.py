@@ -22,8 +22,6 @@ class TwitterDataset(Dataset):
         return len(self.data)
     
     def __getitem__(self, index):
-        if (index == 0):
-            print("This works?")
         if (len(self.data) == index):
             index -= 1
         sample_data = self.data[index]

@@ -58,8 +58,18 @@ class MLP(nn.Module):
         }
         torch.save(checkpoint, save_path)
 
-def load_mlp_model(load_path: str):
-    checkpoint = torch.load(load_path)
-    model = MLP(layers=checkpoint["layers"])  # rebuild model from saved layers
-    model.load_state_dict(checkpoint["state_dict"])  # load weights
-    return model
+
+
+def _extract_layers(modulelist: nn.ModuleList):
+    return [layer.in_features for layer in modulelist] + modulelist[-1].out_features
+
+def load_mlp_model(load_path: str) -> MLP:
+    try:
+        checkpoint = torch.load(load_path)
+        layers = _extract_layers(checkpoint)
+        model = MLP(layers=layers)  # rebuild model from saved layers
+        model.load_state_dict(checkpoint["state_dict"])  # load weights
+        return model
+    except Exception as error:
+        print(f"Error while loading the model: {error}")
+        return None
