@@ -9,6 +9,11 @@ def mean_pooling(model_output, attention_mask):
     return torch.sum(token_embeddings * input_mask_expanded, 1) / torch.clamp(input_mask_expanded.sum(1), min=1e-9)
 
 class SentenceEncoder:
+    """
+    Sentence Transformer used for encoding input sentences
+
+    TODO: Add max_token length
+    """
     def __init__(self, 
                  tokenizer_path="sentence-transformers/all-mpnet-base-v2", 
                  model_path="sentence-transformers/all-mpnet-base-v2"
@@ -19,9 +24,9 @@ class SentenceEncoder:
     def tokenize_sentences(self, sentences):
         return self.tokenizer(sentences, padding=True, truncation=True, return_tensors='pt')
     
+    @torch.no_grad()
     def get_token_embeddings(self, tokenized_sentences):
-        with torch.no_grad():
-            return self.model(**tokenized_sentences)
+        return self.model(**tokenized_sentences)
 
     def encode(self, sentences) -> torch.Tensor:
         tokenized_sents = self.tokenize_sentences(sentences)
@@ -31,7 +36,7 @@ class SentenceEncoder:
 
 def main():
    # Sentences we want sentence embeddings for
-    sentences = ['This is an example sentence', 'Each sentence is converted', 'Hello World']
+    sentences = ['This is an example sentence', 'Each sentence is converted to an encoding', 'Hello World']
 
     model = SentenceEncoder()
     sentence_embeddings = model.encode(sentences)
