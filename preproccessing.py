@@ -1,11 +1,7 @@
-import numpy as np
-from sentence_transformers import SentenceTransformer, util
 import pandas as pd
-import spacy
 from dataloader import UnprocessedTwitterDataset
 from model_parts.sentence_encoder import SentenceEncoder
 import torch
-import json
 from torch.utils.data import DataLoader
 
 def save_data(filepath, name: str, data: pd.DataFrame):
@@ -27,14 +23,16 @@ def encode_data(model: SentenceEncoder, text: str):
     return model.encode(text)[0].tolist()
 
 def get_chunks(df: pd.DataFrame, chunk_size: int):
-    return [df[i:i + chunk_size] for i in range(0, df.shape[1], chunk_size)]
+    return [df[i:i + chunk_size] for i in range(0, df.shape[0], chunk_size)]
 
 def preprocess_and_save(model: SentenceEncoder, save_directory: str, df: pd.DataFrame, chunk_size=1000):
     print(f"Encoding to: {save_directory}")
     chunks = get_chunks(df, chunk_size)
     for i, chunk in enumerate(chunks):
-        print(f"Encoding Chunk: {i}")
-        chunk["encodings"] = chunk[" text"].apply(lambda x: model.encode(x))
+        print(f"Encoding Chunk: {i}/{len(chunks)}")
+        chunk = chunk.copy()
+        # Convert tensor encodings to lists
+        chunk["encodings"] = chunk[" text"].apply(lambda x: model.encode(x).cpu().numpy().tolist())
         save_path = save_directory + f"_batch.{i}.json"
         chunk.to_json(save_path)
 
@@ -48,10 +46,10 @@ def preproccessing(dataset: UnprocessedTwitterDataset, model: SentenceEncoder, b
     for batch_data, batch_target in dataloader:
         ...
 
+def merge_data(dir_path):
+    ...
 
 def main():
-    #nlp = spacy.load("en_core_web_sm")
-    #model = SentenceTransformer("all-mpnet-base-v2")
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     data_path = "./Data/twitter_sentiment/training.1600000.processed.noemoticon.csv"
     
@@ -64,14 +62,13 @@ def main():
     test_data = load_dataset(data_path, test_num, train_num)
     valid_data = load_dataset(data_path, valid_num, train_num + test_num)
 
-    
     # Initialize Sentence encoder
-    encoder = SentenceEncoder()
+    encoder = SentenceEncoder(device)
     
-    save_file_path = "./Data/twitter_sentiment/"
-    preprocess_and_save(encoder, save_file_path + "train_results/", train_data)
-    preprocess_and_save(encoder, save_file_path + "test_results/", test_data, chunk_size=2500)
-    preprocess_and_save(encoder, save_file_path + "validation_results/", valid_data, chunk_size=1000)
+    save_file_path = "./Data/twitter_sentiment/preprocessing/"
+    preprocess_and_save(encoder, save_file_path + "train_batch/", train_data)
+    preprocess_and_save(encoder, save_file_path + "test_batch/", test_data, chunk_size=2500)
+    preprocess_and_save(encoder, save_file_path + "validation_batch/", valid_data, chunk_size=1000)
 
 if __name__ == "__main__":
     main()

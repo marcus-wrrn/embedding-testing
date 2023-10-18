@@ -15,14 +15,16 @@ class SentenceEncoder:
     TODO: Add max_token length
     """
     def __init__(self, 
+                 device,
                  tokenizer_path="sentence-transformers/all-mpnet-base-v2", 
                  model_path="sentence-transformers/all-mpnet-base-v2" 
                 ):
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
-        self.model = AutoModel.from_pretrained(model_path)
-    
+        self.model = AutoModel.from_pretrained(model_path).to(device)
+        self.device = device
+
     def tokenize_sentences(self, sentences):
-        return self.tokenizer(sentences, padding=True, truncation=True, return_tensors='pt')
+        return self.tokenizer(sentences, padding=True, truncation=True, return_tensors='pt').to(self.device)
     
     @torch.no_grad()
     def get_token_embeddings(self, tokenized_sentences):
