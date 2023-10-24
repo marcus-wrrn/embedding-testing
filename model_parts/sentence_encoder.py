@@ -30,11 +30,12 @@ class SentenceEncoder:
     def get_token_embeddings(self, tokenized_sentences):
         return self.model(**tokenized_sentences)
 
-    def encode(self, sentences) -> torch.Tensor:
+    def encode(self, sentences, normalize=True) -> torch.Tensor:
         tokenized_sents = self.tokenize_sentences(sentences)
         token_embeddings = self.get_token_embeddings(tokenized_sents)
         sentence_embeddings = mean_pooling(token_embeddings, tokenized_sents['attention_mask'])
-        return F.normalize(sentence_embeddings, p=2, dim=1)
+        # Consider not adding normalization (does that improve performance?)
+        return F.normalize(sentence_embeddings, p=2, dim=1) if normalize else sentence_embeddings
 
 def main():
    # Sentences we want sentence embeddings for

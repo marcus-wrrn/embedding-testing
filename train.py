@@ -78,7 +78,7 @@ def main():
                 loss = loss_fn(batch_targets, outputs)
                 loss_valid += loss.item()
             losses_valid.append(loss_valid / len(valid_dataloader))
-        
+        model.train()
         print(f"{datetime.datetime.now()} Epoch: {epoch}, Train Loss: {loss_train / len(train_dataloader)}, Valid Loss: {loss_valid / len(valid_dataloader)}")
         if losses_valid[-1] < 0.145:
             break

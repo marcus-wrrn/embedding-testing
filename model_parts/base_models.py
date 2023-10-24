@@ -2,7 +2,7 @@ import torch
 from torch import nn
 
 class Auto4LayerEncoder(nn.Module):
-    def __init__(self, N_input=768, layer_size=4, N_bottleneck=200, N_output=768):
+    def __init__(self, N_input=768, N_bottleneck=200, N_output=768):
         super(Auto4LayerEncoder, self).__init__()
         N2 = N_input // 2
         self.fc1 = nn.Linear(N_input, N2)       # input = 1x784, output = 1x392
@@ -48,8 +48,7 @@ class MLP(nn.Module):
     def forward(self, X):
         for i in range(len(self.layers) - 1):
             X = torch.relu(self.layers[i](X))
-        X = torch.sigmoid(self.layers[-1](X))
-        return X
+        return torch.sigmoid(self.layers[-1](X))
     
     def save_file(self, save_path: str):
         checkpoint = {
@@ -57,8 +56,6 @@ class MLP(nn.Module):
             "state_dict": self.state_dict()
         }
         torch.save(checkpoint, save_path)
-
-
 
 def _extract_layers_from_modulelist(modulelist: nn.ModuleList):
     layers_list = [layer.in_features for layer in modulelist] + [modulelist[-1].out_features]
